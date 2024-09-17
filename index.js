@@ -2,7 +2,7 @@ require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const MODEL_NAME = "gemini-pro";
+const MODEL_NAME = "gemini-1.5-flash";
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
