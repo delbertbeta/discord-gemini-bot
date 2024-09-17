@@ -1,6 +1,10 @@
 require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const {
+  GoogleGenerativeAI,
+  ChatSession,
+  GenerativeModel,
+} = require("@google/generative-ai");
 
 const MODEL_NAME = "gemini-1.5-flash";
 const client = new Client({
@@ -12,6 +16,11 @@ const client = new Client({
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/** @type {GenerativeModel} */
+let model;
+/** @type {ChatSession} */
+let chat;
 
 client.on("ready", () => {
   console.log(`Bot is ready! Logged in as ${client.user.tag}.`);
@@ -28,7 +37,10 @@ client.on("messageCreate", async (message) => {
       .replace(`<@!${client.user.id}>`, "")
       .trim();
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    if (!model) {
+      model = genAI.getGenerativeModel({ model: MODEL_NAME });
+      chat = model.startChat();
+    }
 
     const generationConfig = {
       temperature: 0.9,
@@ -47,6 +59,8 @@ client.on("messageCreate", async (message) => {
       contents: [{ role: "user", parts }],
       generationConfig,
     });
+
+    model = undefined;
 
     const reply = await result.response.text();
     // due to Discord limitations, we can only send 2000 characters at a time, so we need to split the message
