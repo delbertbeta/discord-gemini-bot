@@ -5,6 +5,7 @@ const {
   ChatSession,
   GenerativeModel,
 } = require("@google/generative-ai");
+const { replaceWithObjectValues } = require("./utils");
 
 const MODEL_NAME = "gemini-1.5-flash";
 const client = new Client({
@@ -32,10 +33,11 @@ client.on("messageCreate", async (message) => {
 
   // Tests if the message mentions this bot. `client.user` is the discord bot user.
   if (message.mentions.has(client.user)) {
-    // Removes the at-string to this bot.
-    const userMessage = message.content
+    let userMessage = message.content
       .replace(`<@!${client.user.id}>`, "")
       .trim();
+
+    userMessage = replaceWithObjectValues(userMessage, message.mentions.users);
 
     if (!model) {
       model = genAI.getGenerativeModel({ model: MODEL_NAME });
@@ -51,7 +53,7 @@ client.on("messageCreate", async (message) => {
 
     const parts = [
       {
-        text: `input: ${userMessage}`,
+        text: `你是一个 Discord 机器人，请只回答用户提出的问题本身。\n以下是用户的输入：\n${userMessage}`,
       },
     ];
 
