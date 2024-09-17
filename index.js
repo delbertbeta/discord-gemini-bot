@@ -14,13 +14,16 @@ const client = new Client({
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 client.on("ready", () => {
-  console.log("Bot is ready!");
+  console.log(`Bot is ready! Logged in as ${client.user.tag}.`);
 });
 
 client.on("messageCreate", async (message) => {
+  // Ignores bot message requests.
   if (message.author.bot) return;
 
+  // Tests if the message mentions this bot. `client.user` is the discord bot user.
   if (message.mentions.has(client.user)) {
+    // Removes the at-string to this bot.
     const userMessage = message.content
       .replace(`<@!${client.user.id}>`, "")
       .trim();
