@@ -5,7 +5,7 @@ import {
   ChatSession,
   GenerativeModel,
 } from "@google/generative-ai";
-import { replaceWithObjectValues } from "./utils";
+import { replaceWithObjectValues } from "./src/utils";
 
 dotenv.config();
 
