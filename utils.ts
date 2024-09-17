@@ -1,10 +1,6 @@
-/**
- * 
- * @param {string} str 
- * @param {Map<string, User>} obj 
- * @returns 
- */
-exports.replaceWithObjectValues = function replaceWithObjectValues(str, obj) {
+import type { User } from "discord.js";
+
+export function replaceWithObjectValues(str: string, obj: Map<string, User>) {
   // 正则表达式：匹配以@开头，后面跟着一串数字
   const regex = /@(\d+)/g;
 

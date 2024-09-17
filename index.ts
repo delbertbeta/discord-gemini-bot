@@ -1,11 +1,13 @@
-require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
-const {
+import dotenv from "dotenv";
+import { Client, GatewayIntentBits } from "discord.js";
+import {
   GoogleGenerativeAI,
   ChatSession,
   GenerativeModel,
-} = require("@google/generative-ai");
-const { replaceWithObjectValues } = require("./utils");
+} from "@google/generative-ai";
+import { replaceWithObjectValues } from "./utils";
+
+dotenv.config();
 
 const MODEL_NAME = "gemini-1.5-flash";
 const client = new Client({
@@ -16,20 +18,22 @@ const client = new Client({
   ],
 });
 
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY is not set");
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-/** @type {GenerativeModel} */
-let model;
-/** @type {ChatSession} */
-let chat;
+let model: GenerativeModel | undefined;
+let chat: ChatSession | undefined;
 
 client.on("ready", () => {
-  console.log(`Bot is ready! Logged in as ${client.user.tag}.`);
+  console.log(`Bot is ready! Logged in as ${client.user?.tag}.`);
 });
 
 client.on("messageCreate", async (message) => {
   // Ignores bot message requests.
-  if (message.author.bot) return;
+  if (message.author.bot || !client.user) return;
 
   // Tests if the message mentions this bot. `client.user` is the discord bot user.
   if (message.mentions.has(client.user)) {
@@ -64,11 +68,11 @@ client.on("messageCreate", async (message) => {
 
     model = undefined;
 
-    const reply = await result.response.text();
+    const reply = result.response.text();
     // due to Discord limitations, we can only send 2000 characters at a time, so we need to split the message
     if (reply.length > 2000) {
       const replyArray = reply.match(/[\s\S]{1,2000}/g);
-      replyArray.forEach(async (msg) => {
+      replyArray!.forEach(async (msg) => {
         await message.reply(msg);
       });
       return;

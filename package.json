@@ -4,7 +4,8 @@
   "description": "1. Get Discord API Key via : https://discord.com/developers/applications\r 2. Get Gemini API Key via: https://makersuite.google.com/\r 3. `npm init`\r 4. `npm install dotenv google-auth-library @google-ai/generativelanguage`",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -14,5 +15,8 @@
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "google-auth-library": "^9.6.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
   }
 }
