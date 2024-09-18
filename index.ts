@@ -3,6 +3,7 @@ import { Client, REST, Events, GatewayIntentBits } from "discord.js";
 import { registerCommandInteraction, registerCommands } from "./src/command";
 import { ModelState } from "./src/model";
 import { registerMessageHandler } from "./src/message";
+import { inspect } from "util";
 
 dotenv.config();
 
@@ -14,6 +15,9 @@ if (!process.env.DISCORD_API_KEY) {
 }
 if (!process.env.DISCORD_CLIENT_ID) {
   throw new Error("DISCORD_CLIENT_ID is not set");
+}
+if (process.env.VERBOSITY && process.env.VERBOSITY.toLowerCase() === "debug") {
+  inspect.defaultOptions.depth = 10;
 }
 
 const client = new Client({
