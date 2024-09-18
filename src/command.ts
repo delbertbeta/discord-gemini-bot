@@ -18,7 +18,10 @@ export function registerCommands(rest: REST) {
       console.log("Successfully registered application commands.");
     })
     .catch((e) => {
-      console.error("Register application command failed", e);
+      console.error("Register application command failed:", e);
+      if (e?.message?.includes("Connect Timeout Error")) {
+        console.error("[NOTE] Please check your connection with Discord.");
+      }
     });
 }
 
@@ -32,16 +35,20 @@ export function registerCommandInteraction(
     if (interaction.commandName === "clear") {
       modelState.clear();
 
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({
-          content: "Gemini context cleared.",
-          ephemeral: true,
-        });
-      } else {
-        await interaction.reply({
-          content: "Gemini context cleared.",
-          ephemeral: true,
-        });
+      try {
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp({
+            content: "Gemini context cleared.",
+            ephemeral: true,
+          });
+        } else {
+          await interaction.reply({
+            content: "Gemini context cleared.",
+            ephemeral: true,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to send reply to `clear` command:", error);
       }
     }
   });

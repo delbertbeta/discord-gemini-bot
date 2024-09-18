@@ -26,21 +26,25 @@ export function registerMessageHandler(
         modelState.init();
       }
 
-      const result = await modelState.chat.sendMessageStream(
-        i18n.t("prompt.chatPrefix", [userMessage])
-      );
+      try {
+        const result = await modelState.chat.sendMessageStream(
+          i18n.t("prompt.chatPrefix", [userMessage])
+        );
 
-      let replyText = "";
-      let replyMessage: Message | undefined;
+        let replyText = "";
+        let replyMessage: Message | undefined;
 
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        replyText += chunkText;
-        if (!replyMessage) {
-          replyMessage = await message.reply(replyText);
-        } else {
-          await replyMessage.edit(replyText);
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          replyText += chunkText;
+          if (!replyMessage) {
+            replyMessage = await message.reply(replyText);
+          } else {
+            await replyMessage.edit(replyText);
+          }
         }
+      } catch (error) {
+        console.error("Failed to send response:", error);
       }
     }
   });
