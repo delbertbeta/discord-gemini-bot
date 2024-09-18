@@ -1,5 +1,13 @@
 import dotenv from "dotenv";
-import { Client, GatewayIntentBits } from "discord.js";
+import {
+  Client,
+  REST,
+  Events,
+  GatewayIntentBits,
+  Message,
+  Routes,
+  SlashCommandBuilder,
+} from "discord.js";
 import {
   GoogleGenerativeAI,
   ChatSession,
@@ -10,6 +18,7 @@ import { replaceWithObjectValues } from "./src/utils";
 dotenv.config();
 
 const MODEL_NAME = "gemini-1.5-flash";
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -17,6 +26,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
   ],
 });
+const rest = new REST().setToken(process.env.DISCORD_API_KEY);
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY is not set");
@@ -27,11 +37,49 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 let model: GenerativeModel | undefined;
 let chat: ChatSession | undefined;
 
-client.on("ready", () => {
+const commands = [
+  new SlashCommandBuilder()
+    .setName("clear")
+    .setDescription(
+      "Clear context but not support async! It will crash if you call this while other using this bot."
+    ),
+];
+
+rest
+  .put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID), {
+    body: commands,
+  })
+  .then(() => {
+    console.log("Successfully registered application commands.");
+  })
+  .catch((e) => {
+    console.error("Register application command failed", e);
+  });
+
+client.on(Events.ClientReady, () => {
   console.log(`Bot is ready! Logged in as ${client.user?.tag}.`);
 });
 
-client.on("messageCreate", async (message) => {
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === "clear") {
+    model = undefined;
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        content: "Gemini context cleared.",
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: "Gemini context cleared.",
+        ephemeral: true,
+      });
+    }
+  }
+});
+
+client.on(Events.MessageCreate, async (message) => {
   // Ignores bot message requests.
   if (message.author.bot || !client.user) return;
 
@@ -45,40 +93,36 @@ client.on("messageCreate", async (message) => {
 
     if (!model) {
       model = genAI.getGenerativeModel({ model: MODEL_NAME });
-      chat = model.startChat();
-    }
-
-    const generationConfig = {
-      temperature: 0.9,
-      topK: 1,
-      topP: 1,
-      maxOutputTokens: 2048,
-    };
-
-    const parts = [
-      {
-        text: `你是一个 Discord 机器人，请只回答用户提出的问题本身。\n以下是用户的输入：\n${userMessage}`,
-      },
-    ];
-
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts }],
-      generationConfig,
-    });
-
-    model = undefined;
-
-    const reply = result.response.text();
-    // due to Discord limitations, we can only send 2000 characters at a time, so we need to split the message
-    if (reply.length > 2000) {
-      const replyArray = reply.match(/[\s\S]{1,2000}/g);
-      replyArray!.forEach(async (msg) => {
-        await message.reply(msg);
+      chat = model.startChat({
+        history: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: "你是一个 Discord 机器人，请用友好、简练、有条理的方式组织回答，只回答用户提出的问题本身。",
+              },
+            ],
+          },
+        ],
       });
-      return;
     }
 
-    message.reply(reply);
+    const result = await chat.sendMessageStream(
+      `请结合上下文，用友好、简练、有条理的方式组织语言继续回答用户输入：\n以下是用户的输入：\n${userMessage}`
+    );
+
+    let replyText = "";
+    let replyMessage: Message | undefined;
+
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      replyText += chunkText;
+      if (!replyMessage) {
+        replyMessage = await message.reply(replyText);
+      } else {
+        await replyMessage.edit(replyText);
+      }
+    }
   }
 });
 
