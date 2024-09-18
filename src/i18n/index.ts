@@ -30,7 +30,7 @@ export class I18n {
     }
 
     if (typeof v === "string" && formatArgs) {
-      const matches = v.matchAll(/(?<!\\)\{(\d+|[A-Za-z0-9_]+)\}/g);
+      const matches = v.matchAll(/(?<!\\)\{([^\}]+)\}/g);
       for (const m of matches) {
         v =
           v.slice(0, m.index) +
