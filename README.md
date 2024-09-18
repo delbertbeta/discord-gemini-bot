@@ -1,133 +1,90 @@
-## Step by Step Guide to make your own Gemini API Discord Bot
+<p align="center"><img height="160" src="assets/logo.png" /></p>
 
-Try the Gemini Bot by adding to your discord server : [Click here to Add](https://discord.com/oauth2/authorize?client_id=1214629041135419402&permissions=36507479040&scope=bot)
+## Discord Gemini Bot 🤖
 
-### To Use the Bot
-After adding the bot to your discord server then you can simply tag the bot and ask question as below after which you will get your answers shortly 😉
-![alt text](Images/image-3.png)
+### Features
 
-The Bot won't give any response as currently it only works locally. Will host soon at Replit:D
+<p align="center"><img width="600" src="assets/screenshot_1.png" /></p>
 
-### Setup Initial Coding Workspace
-Execute this commands on your IDE on a directory you want to work on
-1. ```npm init```
-2. ```npm install discord.js```
-3. ```npm install @google/generative-ai```
+- [x] 😀 Chat using texts
+- [x] 👋🏼 Chat with context
+- [x] 🥷🏼 Clear context with `/clear` command
+- [x] 🚀 Streaming output
+- [ ] Multimodal support
 
-After doing this:
+<br />
 
-### Making APIs Ready
+### Deploy
 
-4. Get Discord API Key via : https://discord.com/developers/applications
+#### Get the codes
 
-After you create a API key then you will get to see a token once so you should copy that and keep it safely somewhere, better to use Google Keep - https://keep.google.com/ for this.
+This project is written in TypeScript, before deploy, ensure you have NodeJS (>= v20 is recommended) installed. If you don't have NodeJS, [fnm](https://github.com/Schniz/fnm) is the NodeJS installer recommended.
 
-5. Get Gemini API Key via: https://makersuite.google.com/
-
-And to view your already created API key, you can visit: https://aistudio.google.com/app/apikey
-
-And keep both the keys at `.env` file:-
+```bash
+git clone https://github.com/delbertbeta/discord-gemini-bot.git
+cd discord-gemini-bot
+npm i
 ```
-DISCORD_API_KEY= # Your Discord API key
-GEMINI_API_KEY= # Your Gemini API key 
-```
-**<u>But make sure to include `.env` file to your `.gitignore` file</u>**
 
-And then enter this code at `index.js` file
+<br />
+
+#### Making APIs Ready
+
+1. Get Discord API Key and Client ID via : https://discord.com/developers/applications
+   1. If you do not have a bot, just create one.
+   2. After create, click `Bot` in the nav.
+   3. In `Privileged Gateway Intents`, enable following permissions:
+      1. `Presence Intent`
+      2. `Server Members Intent`
+      3. `Message Content Intent`
+2. Get Gemini API Key via: https://aistudio.google.com/app/apikey
+
+```bash
+cp .env.example .env
+```
+
+Then replace your key into `.env` file, reminder to keep these keys safely and **DO NOT** upload this file to public place.
+
+<br />
+
+#### Run Server
+
 ```js
-require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const MODEL_NAME = "gemini-pro";
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-client.on("ready", () => {
-  console.log("Bot is ready!");
-});
-
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-
-  if (message.mentions.has(client.user)) {
-    const userMessage = message.content
-      .replace(`<@!${client.user.id}>`, "")
-      .trim();
-
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
-    const generationConfig = {
-      temperature: 0.9,
-      topK: 1,
-      topP: 1,
-      maxOutputTokens: 2048,
-    };
-
-    const parts = [
-      {
-        text: `input: ${userMessage}`,
-      },
-    ];
-
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts }],
-      generationConfig,
-    });
-
-    const reply = await result.response.text();
-    // due to Discord limitations, we can only send 2000 characters at a time, so we need to split the message
-    if (reply.length > 2000) {
-      const replyArray = reply.match(/[\s\S]{1,2000}/g);
-      replyArray.forEach(async (msg) => {
-        await message.reply(msg);
-      });
-      return;
-    }
-
-    message.reply(reply);
-  }
-});
-
-client.login(process.env.DISCORD_API_KEY);
+npm run dev
 ```
 
-And finally
-```js
-node index.js
-```
-You will see this output if everthing is working fine:
-```Bot is ready!```
+You will see this output if everthing is working fine: `Bot is ready!`
 
-<u>The Bot only works if your process is running which means if you stop the process then the bot won't give you response.</u>
+**The Bot only works if your process is running which means if you stop the process then the bot won't give you response.**
 
-### Making Gemini Bot Ready to Onboard into your Discord Server
+To make the bot server as a background service, use `systemd`, `tmux` or `screen`.
 
-Then after setting up OAuth2 from your Discord Developer Dashboard you will be able to invite the bot.
+<br />
 
-Some guides to follow at Discord Developer Dashboard:-
-1. At `OAuth2 URL Generator` choose `bot`
-![alt text](Images/image-1.png)
-2. Give Necessary Bot Permissions![alt text](Images/image.png)
-3. After this you will get a Generated URL for bot invite.![alt text](Images/image-2.png)
+#### Add Gemini bot to your Discord Server
+
+1. Open https://discord.com/developers/applications and select the bot you just created.
+2. Click `OAuth2` in the nav.
+3. In `OAuth2 URL Generator`, check the following options:
+   1. `bot`
+   2. `applications.commands`
+4. In `Bot Permissions`, check the following options:
+   1. `Send Messages`
+   2. `Create Public Threads`
+   3. `Manage Messages`
+   4. `Embed Links`
+   5. `Attach Files`
+   6. `Read Message History`
+   7. `Mention Everyone`
+   8. `Use Slash Commands`
+   9. `View Channels`
+5. `Integration Type` choose `Guild Install`
+6. Copy the `Generated URL` and open it in your browser, now you can add it into your discord server.
 
 Congrats on making your own Gemini Bot.
 
-Thank you for Reading till the end, I wish to see your own bot live. 
+<br />
 
-Do let me know if you have any issues at [GDG Kathmandu Discord Server](https://discord.gg/5Q48VRyJ6j)
+### Thanks
 
-
-### Resources I used to make the bot:
-- https://razanfawwaz.medium.com/membuat-chatbot-discord-dengan-palm-api-0a041dcd9bc0
-- https://github.com/razanfawwaz/gemini-bot?tab=readme-ov-file
-- https://ai.google.dev/tutorials/node_quickstart#generate-text-from-text-input
-- https://discordjs.guide/preparations/#installing-node-js
-- https://ai.google.dev/tutorials/node_quickstart#generate-text-from-text-input
+- [Bibekdhkl/Gemini-discord-bot](https://github.com/Bibekdhkl/Gemini-discord-bot)
