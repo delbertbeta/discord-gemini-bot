@@ -41,4 +41,25 @@ registerCommandInteraction(client, modelState);
 
 registerMessageHandler(client, modelState);
 
+process.on("uncaughtException", handleUncaughtException);
+process.on("unhandledRejection", handlePromiseRejection);
+
+function handleUncaughtException(
+  error: Error,
+  origin: NodeJS.UncaughtExceptionOrigin
+) {
+  if (
+    error.message.includes("User location is not supported for the API use")
+  ) {
+    console.error("[NOTE] Please run this bot from Gemini supported areas.");
+    return;
+  }
+}
+
+function handlePromiseRejection(error: unknown, promise: Promise<unknown>) {
+  if (error instanceof Error) {
+    handleUncaughtException(error, "unhandledRejection");
+  }
+}
+
 client.login(process.env.DISCORD_API_KEY);
