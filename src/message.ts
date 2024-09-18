@@ -45,6 +45,15 @@ export function registerMessageHandler(
         }
       } catch (error) {
         console.error("Failed to send response:", error);
+        if (
+          error?.message?.includes(
+            "User location is not supported for the API use"
+          )
+        ) {
+          console.error(
+            "[NOTE] Please make sure your requests are from locations supported by Google Gemini and then restart this bot."
+          );
+        }
       }
     }
   });

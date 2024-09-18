@@ -18,6 +18,7 @@ if (!process.env.DISCORD_CLIENT_ID) {
 }
 if (process.env.VERBOSITY && process.env.VERBOSITY.toLowerCase() === "debug") {
   inspect.defaultOptions.depth = 10;
+  Error.stackTraceLimit = Infinity;
 }
 
 const client = new Client({
@@ -48,12 +49,7 @@ function handleUncaughtException(
   error: Error,
   origin: NodeJS.UncaughtExceptionOrigin
 ) {
-  if (
-    error.message.includes("User location is not supported for the API use")
-  ) {
-    console.error("[NOTE] Please run this bot from Gemini supported areas.");
-    return;
-  }
+  // Handle unexpected errors.
 }
 
 function handlePromiseRejection(error: unknown, promise: Promise<unknown>) {
