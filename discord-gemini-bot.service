@@ -1,0 +1,20 @@
+# /etc/systemd/system/discord-gemini-bot.service
+[Unit]
+Description=Discrod Gemini Bot
+After=network.target
+
+[Service]
+RestartSec=2s
+Type=simple
+# Fill up with your user
+User=
+# Fill up with your group
+Group=
+# Fill up with your git cloned folder
+WorkingDirectory=
+
+ExecStart=/usr/bin/env bash -c "npm run start"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
