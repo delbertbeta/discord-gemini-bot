@@ -1,12 +1,11 @@
 import { Client, Events, REST, Routes, SlashCommandBuilder } from "discord.js";
 import type { ModelState } from "./model";
+import i18n from "./i18n";
 
 const commands = [
   new SlashCommandBuilder()
     .setName("clear")
-    .setDescription(
-      "Clear context but not support async! It will crash if you call this while other using this bot."
-    ),
+    .setDescription(i18n.t("command.clear")),
 ];
 
 export function registerCommands(rest: REST) {
