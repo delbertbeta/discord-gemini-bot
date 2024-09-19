@@ -2,13 +2,13 @@ import { Client, Events, REST, Routes, SlashCommandBuilder } from "discord.js";
 import type { ModelState } from "./model";
 import i18n from "./i18n";
 
-const commands = [
-  new SlashCommandBuilder()
-    .setName("clear")
-    .setDescription(i18n.t("command.clear")),
-];
-
 export function registerCommands(rest: REST) {
+  const commands = [
+    new SlashCommandBuilder()
+      .setName("clear")
+      .setDescription(i18n.t("command.clear.description")),
+  ];
+
   rest
     .put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID), {
       body: commands,
@@ -41,12 +41,12 @@ export function registerCommandInteraction(
       try {
         if (interaction.replied || interaction.deferred) {
           await interaction.followUp({
-            content: "Gemini context cleared.",
+            content: i18n.t("command.clear.response"),
             ephemeral: true,
           });
         } else {
           await interaction.reply({
-            content: "Gemini context cleared.",
+            content: i18n.t("command.clear.response"),
             ephemeral: true,
           });
         }

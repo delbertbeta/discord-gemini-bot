@@ -6,7 +6,6 @@ export class I18n {
 
   constructor(lang: I18n["lang"]) {
     this.lang = lang;
-    this.initializeConfig();
   }
 
   async initializeConfig() {

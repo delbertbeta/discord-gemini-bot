@@ -55,6 +55,11 @@ export function registerMessageHandler(
           console.error(
             "[NOTE] Please make sure your requests are from locations supported by Google Gemini and then restart this bot."
           );
+        } else if (
+          error?.message?.includes("Candidate was blocked due to SAFETY")
+        ) {
+          console.error("Resetting model...");
+          modelStateMap.delete(message.channelId);
         }
       }
     }

@@ -4,6 +4,9 @@
     "chatPrefix": "Please continue your response to user input in a friendly, concise, and structured manner.\nUser input:\n{0}"
   },
   "command": {
-    "clear": "Clear current chat context."
+    "clear": {
+      "description": "Clear current chat context.",
+      "response": "*Chat context cleared.*"
+    }
   }
 }
