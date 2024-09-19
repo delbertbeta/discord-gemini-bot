@@ -1,0 +1,44 @@
+---
+kind: pipeline
+name: Build
+type: docker
+
+steps:
+- name: install deps
+  image: node:20
+  commands:
+  - npm install
+
+- name: build
+  image: node:20
+  commands:
+  - npm run build
+
+- name: zip
+  image: alpine:3.20.3
+  commands:
+  - apk add zip
+  - zip -r -v ./bundle.zip ./dist
+
+- name: upload
+  image: plugins/s3
+  settings:
+    bucket:
+      from_secret: s3_bucket
+    access_key:
+      from_secret: s3_secret_id
+    secret_key:
+      from_secret: s3_secret_key
+    endpoint:
+      from_secret: s3_endpoint
+    region:
+      from_secret: s3_region
+    source: bundle.zip
+    target: ${DRONE_REPO}/${DRONE_BUILD_NUMBER}
+
+trigger:
+  branch:
+  - master
+  event:
+  - push
+...
