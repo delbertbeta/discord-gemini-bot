@@ -47,6 +47,14 @@ Then replace your key into `.env` file, reminder to keep these keys safely and *
 
 <br />
 
+#### Configure i18n
+
+You can change the language used by the bot user interface by setting the environment variable `LANG`. This variable has probably already been set by your operating system, but you can give a custom value in the `.env` file to serve users with different language preferences. Note that the value must begin with one of the filenames of the JSON files under `src/i18n`.
+
+Although localized prompt is given to the AI model initially, this setting does not guarantee that it will respond with the same language, you can still get responses in any language if you ask the model to do so.
+
+<br />
+
 #### Run Server
 
 ```js
