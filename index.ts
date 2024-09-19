@@ -30,7 +30,8 @@ const client = new Client({
 });
 const rest = new REST().setToken(process.env.DISCORD_API_KEY);
 
-const modelState = new ModelState();
+/** Gives each channel its own chat context. Keys: Channel ID. */
+const modelStateMap = new Map<string, ModelState>();
 
 registerCommands(rest);
 
@@ -38,9 +39,9 @@ client.on(Events.ClientReady, () => {
   console.log(`Bot is ready! Logged in as ${client.user?.tag}.`);
 });
 
-registerCommandInteraction(client, modelState);
+registerCommandInteraction(client, modelStateMap);
 
-registerMessageHandler(client, modelState);
+registerMessageHandler(client, modelStateMap);
 
 process.on("uncaughtException", handleUncaughtException);
 process.on("unhandledRejection", handlePromiseRejection);

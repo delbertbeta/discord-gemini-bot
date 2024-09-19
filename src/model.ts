@@ -1,6 +1,7 @@
 import {
-  ChatSession,
-  GenerativeModel,
+  type ChatSession,
+  type GenerateContentStreamResult,
+  type GenerativeModel,
   GoogleGenerativeAI,
 } from "@google/generative-ai";
 import i18n from "./i18n";
@@ -10,25 +11,17 @@ const MODEL_NAME = "gemini-1.5-flash";
 let genAI: GoogleGenerativeAI;
 
 export class ModelState {
-  model: GenerativeModel | null = null;
-  chat: ChatSession | null = null;
+  private model: GenerativeModel | null = null;
+  private chat: ChatSession | null = null;
 
-  constructor() {
+  constructor(prompt?: string) {
     if (!genAI) {
       genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     }
+    this.init(prompt);
   }
 
-  clear(): void {
-    this.model = null;
-    this.chat = null;
-  }
-
-  get inited(): boolean {
-    return !!this.model && !!this.chat;
-  }
-
-  init(prompt?: string): void {
+  init(prompt?: string): ModelState {
     this.model = genAI.getGenerativeModel({ model: MODEL_NAME });
     this.chat = this.model.startChat({
       history: [
@@ -42,5 +35,12 @@ export class ModelState {
         },
       ],
     });
+    return this;
+  }
+
+  async sendMessageStream(
+    message: string
+  ): Promise<GenerateContentStreamResult> {
+    return await this.chat.sendMessageStream(message);
   }
 }

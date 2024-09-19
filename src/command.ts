@@ -27,13 +27,17 @@ export function registerCommands(rest: REST) {
 
 export function registerCommandInteraction(
   client: Client<boolean>,
-  modelState: ModelState
+  modelStateMap: Map<string, ModelState>
 ) {
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (
+      !interaction.isChatInputCommand() ||
+      !modelStateMap.has(interaction.channelId)
+    )
+      return;
 
     if (interaction.commandName === "clear") {
-      modelState.clear();
+      modelStateMap.delete(interaction.channelId);
 
       try {
         if (interaction.replied || interaction.deferred) {
