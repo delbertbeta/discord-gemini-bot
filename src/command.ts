@@ -1,15 +1,14 @@
 import { Client, Events, REST, Routes, SlashCommandBuilder } from "discord.js";
 import type { ModelState } from "./model";
-
-const commands = [
-  new SlashCommandBuilder()
-    .setName("clear")
-    .setDescription(
-      "Clear context but not support async! It will crash if you call this while other using this bot."
-    ),
-];
+import i18n from "./i18n";
 
 export function registerCommands(rest: REST) {
+  const commands = [
+    new SlashCommandBuilder()
+      .setName("clear")
+      .setDescription(i18n.t("command.clear.description")),
+  ];
+
   rest
     .put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID), {
       body: commands,
@@ -27,23 +26,27 @@ export function registerCommands(rest: REST) {
 
 export function registerCommandInteraction(
   client: Client<boolean>,
-  modelState: ModelState
+  modelStateMap: Map<string, ModelState>
 ) {
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (
+      !interaction.isChatInputCommand() ||
+      !modelStateMap.has(interaction.channelId)
+    )
+      return;
 
     if (interaction.commandName === "clear") {
-      modelState.clear();
+      modelStateMap.delete(interaction.channelId);
 
       try {
         if (interaction.replied || interaction.deferred) {
           await interaction.followUp({
-            content: "Gemini context cleared.",
+            content: i18n.t("command.clear.response"),
             ephemeral: true,
           });
         } else {
           await interaction.reply({
-            content: "Gemini context cleared.",
+            content: i18n.t("command.clear.response"),
             ephemeral: true,
           });
         }

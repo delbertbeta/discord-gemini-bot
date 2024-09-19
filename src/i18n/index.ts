@@ -1,12 +1,11 @@
 import { formatString } from "../utils";
 
 export class I18n {
-  lang: "zh" | string;
+  lang: "en" | "zh" | string;
   config: Record<string, string | object>;
 
   constructor(lang: I18n["lang"]) {
     this.lang = lang;
-    this.initializeConfig();
   }
 
   async initializeConfig() {

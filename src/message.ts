@@ -1,11 +1,11 @@
 import { Events, type Client, type Message } from "discord.js";
 import { replaceWithObjectValues } from "./utils";
-import type { ModelState } from "./model";
+import { ModelState } from "./model";
 import i18n from "./i18n";
 
 export function registerMessageHandler(
   client: Client<boolean>,
-  modelState: ModelState
+  modelStateMap: Map<string, ModelState>
 ) {
   client.on(Events.MessageCreate, async (message) => {
     // Ignores bot message requests.
@@ -22,12 +22,14 @@ export function registerMessageHandler(
         message.mentions.users
       );
 
-      if (!modelState.inited) {
-        modelState.init();
+      if (!modelStateMap.has(message.channelId)) {
+        modelStateMap.set(message.channelId, new ModelState().init());
       }
 
       try {
-        const result = await modelState.chat.sendMessageStream(
+        const modelState = modelStateMap.get(message.channelId)!;
+
+        const result = await modelState.sendMessageStream(
           i18n.t("prompt.chatPrefix", [userMessage])
         );
 
@@ -53,6 +55,11 @@ export function registerMessageHandler(
           console.error(
             "[NOTE] Please make sure your requests are from locations supported by Google Gemini and then restart this bot."
           );
+        } else if (
+          error?.message?.includes("Candidate was blocked due to SAFETY")
+        ) {
+          console.error("Resetting model...");
+          modelStateMap.delete(message.channelId);
         }
       }
     }
