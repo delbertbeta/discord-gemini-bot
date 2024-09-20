@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node index.ts",
-    "build": "esbuild ./index.ts --bundle --minify --sourcemap --platform=node --outfile=./dist/index.js",
+    "build": "esbuild ./index.ts --bundle --minify --keep-names --sourcemap --platform=node --outfile=./dist/index.js",
     "start": "node ./dist/index.js"
   },
   "author": "",
