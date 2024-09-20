@@ -57,7 +57,7 @@ async function main() {
     error: Error,
     origin: NodeJS.UncaughtExceptionOrigin
   ) {
-    // Handle unexpected errors.
+    console.error(`${origin}:`, error);
   }
 
   function handlePromiseRejection(error: unknown, promise: Promise<unknown>) {
