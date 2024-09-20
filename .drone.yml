@@ -41,3 +41,73 @@ trigger:
     - main
   event:
     - push
+
+---
+kind: pipeline
+type: docker
+name: Deploy
+
+steps:
+  - name: download artifact
+    image: alpine:3.20.3
+    environment:
+      S3_HOST:
+        from_secret: s3_host
+    commands:
+      - apk add unzip wget
+      - wget $S3_HOST/$DRONE_REPO/$DRONE_BUILD_PARENT/bundle.zip
+      - unzip bundle.zip
+
+  - name: build docker image
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: delbertbeta/discord-gemini-bot
+      tags:
+        - latest
+        - main
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    environment:
+      DISCORD_API_KEY:
+        from_secret: discord_api_key
+      DISCORD_CLIENT_ID:
+        from_secret: discord_client_id
+      GEMINI_API_KEY:
+        from_secret: gemini_api_key
+    settings:
+      envs:
+        - DISCORD_API_KEY
+        - DISCORD_CLIENT_ID
+        - GEMINI_API_KEY
+      host:
+        from_secret: deploy_host
+      username:
+        from_secret: deploy_ssh_username
+      password:
+        from_secret: deploy_ssh_password
+      port: 22
+      command_timeout: 1m
+      script:
+        - docker pull delbertbeta/discord-gemini-bot:main
+        - docker stop discord-gemini-bot || true
+        - docker rm discord-gemini-bot || true
+        - |-
+          docker run \
+            -d \
+            --restart=always \
+            --name=discord-gemini-bot \
+            --env=DISCORD_API_KEY=$DISCORD_API_KEY \
+            --env=DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID \
+            --env=GEMINI_API_KEY=$GEMINI_API_KEY \
+            delbertbeta/discord-gemini-bot:main
+
+trigger:
+  event:
+    - promote
+  target:
+    - production

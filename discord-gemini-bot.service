@@ -1,6 +1,6 @@
 # /etc/systemd/system/discord-gemini-bot.service
 [Unit]
-Description=Discrod Gemini Bot
+Description=Discord Gemini Bot
 After=network.target
 
 [Service]
