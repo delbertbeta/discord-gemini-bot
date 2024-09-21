@@ -1,5 +1,5 @@
 import { Events, type Client, type Message } from "discord.js";
-import { replaceWithObjectValues } from "./utils";
+import { convertImagesToPart, replaceWithObjectValues } from "./utils";
 import { ModelState } from "./model";
 import i18n from "./i18n";
 
@@ -29,9 +29,16 @@ export function registerMessageHandler(
       try {
         const modelState = modelStateMap.get(message.channelId)!;
 
-        const result = await modelState.sendMessageStream(
-          i18n.t("prompt.chatPrefix", [userMessage])
-        );
+        const result = await modelState.sendMessageStream([
+          i18n.t("prompt.chatPrefix", [userMessage]),
+          ...(await Promise.all(
+            message.attachments
+              .filter((attachment) =>
+                attachment.contentType.startsWith("image")
+              )
+              .map(convertImagesToPart)
+          )),
+        ]);
 
         let replyText = "";
         let replyMessage: Message | undefined;
@@ -47,6 +54,11 @@ export function registerMessageHandler(
         }
       } catch (error) {
         console.error("Failed to send response:", error);
+        await message.reply(
+          i18n.t("error.unknown", [
+            error?.message || error?.toString() || "unknown",
+          ])
+        );
         if (
           error?.message?.includes(
             "User location is not supported for the API use"

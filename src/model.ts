@@ -3,6 +3,7 @@ import {
   type GenerateContentStreamResult,
   type GenerativeModel,
   GoogleGenerativeAI,
+  Part,
 } from "@google/generative-ai";
 import i18n from "./i18n";
 
@@ -39,7 +40,7 @@ export class ModelState {
   }
 
   async sendMessageStream(
-    message: string
+    message: Array<string | Part> | string
   ): Promise<GenerateContentStreamResult> {
     return await this.chat.sendMessageStream(message);
   }
