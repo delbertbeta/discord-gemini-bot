@@ -10,7 +10,8 @@
 - [x] 👋🏼 Chat with context
 - [x] 🥷🏼 Clear context with `/clear` command
 - [x] 🚀 Streaming output
-- [ ] Multimodal support
+- [ ] Multimodal support (partial)
+  - [x] Image input supported
 
 ### Development & Deploy
 
