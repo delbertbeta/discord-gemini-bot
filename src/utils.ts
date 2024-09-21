@@ -1,4 +1,5 @@
-import type { User } from "discord.js";
+import { InlineDataPart } from "@google/generative-ai";
+import type { Attachment, User } from "discord.js";
 
 export function replaceWithObjectValues(str: string, obj: Map<string, User>) {
   // 正则表达式：匹配以@开头，后面跟着一串数字
@@ -45,4 +46,17 @@ export function formatString(
   }
 
   return result;
+}
+
+export async function convertImagesToPart(
+  attachment: Attachment
+): Promise<InlineDataPart> {
+  const request = fetch(attachment.proxyURL);
+  const arrayBuffer = await (await request).arrayBuffer();
+  return {
+    inlineData: {
+      data: Buffer.from(arrayBuffer).toString("base64"),
+      mimeType: attachment.contentType,
+    },
+  };
 }
