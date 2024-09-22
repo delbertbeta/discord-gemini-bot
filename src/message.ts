@@ -54,11 +54,16 @@ export function registerMessageHandler(
         }
       } catch (error) {
         console.error("Failed to send response:", error);
-        await message.reply(
-          i18n.t("error.unknown", [
-            error?.message || error?.toString() || "unknown",
-          ])
-        );
+
+        try {
+          await message.reply(
+            i18n.t("error.unknown", [
+              error?.message || error?.toString() || "unknown",
+            ])
+          );
+        } catch (e) {
+          console.error("Failed to send error message:", e);
+        }
         if (
           error?.message?.includes(
             "User location is not supported for the API use"
