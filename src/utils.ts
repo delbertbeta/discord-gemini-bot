@@ -51,12 +51,17 @@ export function formatString(
 export async function convertImagesToPart(
   attachment: Attachment
 ): Promise<InlineDataPart> {
-  const request = fetch(attachment.proxyURL);
-  const arrayBuffer = await (await request).arrayBuffer();
-  return {
-    inlineData: {
-      data: Buffer.from(arrayBuffer).toString("base64"),
-      mimeType: attachment.contentType,
-    },
-  };
+  try {
+    const request = fetch(attachment.proxyURL);
+    const arrayBuffer = await (await request).arrayBuffer();
+    return {
+      inlineData: {
+        data: Buffer.from(arrayBuffer).toString("base64"),
+        mimeType: attachment.contentType,
+      },
+    };
+  } catch (e) {
+    console.error('Download attachment error');
+    throw e;
+  }
 }
