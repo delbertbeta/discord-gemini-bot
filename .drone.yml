@@ -69,6 +69,7 @@ steps:
       tags:
         - latest
         - main
+      purge: false
 
   - name: deploy
     image: appleboy/drone-ssh
