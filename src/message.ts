@@ -1,4 +1,4 @@
-import { Events, type Client, type Message } from "discord.js";
+import { ChannelType, Events, type Client, type Message } from "discord.js";
 import { convertImagesToPart, replaceWithObjectValues } from "./utils";
 import { ModelState } from "./model";
 import i18n from "./i18n";
@@ -12,7 +12,10 @@ export function registerMessageHandler(
     if (message.author.bot || !client.user) return;
 
     // Tests if the message mentions this bot. `client.user` is the discord bot user.
-    if (message.mentions.has(client.user)) {
+    if (
+      message.mentions.has(client.user) ||
+      message.channel.type === ChannelType.DM
+    ) {
       let userMessage = message.content
         .replace(`<@!${client.user.id}>`, "")
         .trim();
@@ -22,12 +25,17 @@ export function registerMessageHandler(
         message.mentions.users
       );
 
-      if (!modelStateMap.has(message.channelId)) {
-        modelStateMap.set(message.channelId, new ModelState().init());
+      let modelKey =
+        message.channel.type === ChannelType.DM
+          ? message.author.id
+          : message.channelId;
+
+      if (!modelStateMap.has(modelKey)) {
+        modelStateMap.set(modelKey, new ModelState().init());
       }
 
       try {
-        const modelState = modelStateMap.get(message.channelId)!;
+        const modelState = modelStateMap.get(modelKey)!;
 
         const result = await modelState.sendMessageStream([
           i18n.t("prompt.chatPrefix", [userMessage]),
@@ -76,7 +84,7 @@ export function registerMessageHandler(
           error?.message?.includes("Candidate was blocked due to SAFETY")
         ) {
           console.error("Resetting model...");
-          modelStateMap.delete(message.channelId);
+          modelStateMap.delete(modelKey);
         }
       }
     }
