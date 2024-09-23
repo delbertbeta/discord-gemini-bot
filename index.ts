@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { Client, REST, Events, GatewayIntentBits } from "discord.js";
+import { Client, REST, Events, GatewayIntentBits, Partials } from "discord.js";
 import { registerCommandInteraction, registerCommands } from "./src/command";
 import { ModelState } from "./src/model";
 import { registerMessageHandler } from "./src/message";
@@ -33,6 +33,10 @@ async function main() {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.DirectMessages,
+    ],
+    partials: [
+      Partials.Channel, // Required to receive DMs
     ],
   });
   const rest = new REST().setToken(process.env.DISCORD_API_KEY);
