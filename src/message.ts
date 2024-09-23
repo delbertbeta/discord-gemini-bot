@@ -1,11 +1,11 @@
 import { ChannelType, Events, type Client, type Message } from "discord.js";
 import { convertImagesToPart, replaceWithObjectValues } from "./utils";
-import { ModelState } from "./model";
+import { ChatContextManager } from "./chat-context";
 import i18n from "./i18n";
 
 export function registerMessageHandler(
   client: Client<boolean>,
-  modelStateMap: Map<string, ModelState>
+  chatContextManager: ChatContextManager
 ) {
   client.on(Events.MessageCreate, async (message) => {
     // Ignores bot message requests.
@@ -25,19 +25,23 @@ export function registerMessageHandler(
         message.mentions.users
       );
 
-      let modelKey =
+      const chatContextKey =
         message.channel.type === ChannelType.DM
           ? message.author.id
           : message.channelId;
 
-      if (!modelStateMap.has(modelKey)) {
-        modelStateMap.set(modelKey, new ModelState().init());
-      }
+      const chatContextType =
+        ChatContextManager.getChatContextTypeFromChannelType(
+          message.channel.type
+        );
+
+      const chatContext = chatContextManager.getOrCreate(
+        chatContextType,
+        chatContextKey
+      );
 
       try {
-        const modelState = modelStateMap.get(modelKey)!;
-
-        const result = await modelState.sendMessageStream([
+        const result = await chatContext.sendMessageStream([
           i18n.t("prompt.chatPrefix", [userMessage]),
           ...(await Promise.all(
             message.attachments
@@ -84,7 +88,7 @@ export function registerMessageHandler(
           error?.message?.includes("Candidate was blocked due to SAFETY")
         ) {
           console.error("Resetting model...");
-          modelStateMap.delete(modelKey);
+          chatContextManager.delete(chatContextType, chatContextKey);
         }
       }
     }

@@ -2,10 +2,10 @@
   "name": "discord-bot-gemini",
   "version": "1.0.0",
   "description": "1. Get Discord API Key via : https://discord.com/developers/applications\r 2. Get Gemini API Key via: https://makersuite.google.com/\r 3. `npm init`\r 4. `npm install dotenv google-auth-library @google-ai/generativelanguage`",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "build": "esbuild ./index.ts --bundle --minify --keep-names --sourcemap --platform=node --outfile=./dist/index.js",
+    "dev": "ts-node ./src/index.ts",
+    "build": "esbuild ./src/index.ts --bundle --minify --keep-names --sourcemap --platform=node --outfile=./dist/index.js",
     "start": "node ./dist/index.js"
   },
   "author": "",

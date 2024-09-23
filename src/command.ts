@@ -1,5 +1,5 @@
 import { Client, Events, REST, Routes, SlashCommandBuilder } from "discord.js";
-import type { ModelState } from "./model";
+import { ChatContextManager, ChatContextType } from "./chat-context";
 import i18n from "./i18n";
 
 export function registerCommands(rest: REST) {
@@ -26,17 +26,25 @@ export function registerCommands(rest: REST) {
 
 export function registerCommandInteraction(
   client: Client<boolean>,
-  modelStateMap: Map<string, ModelState>
+  chatContextManager: ChatContextManager
 ) {
   client.on(Events.InteractionCreate, async (interaction) => {
+    const chatContextKey = !interaction.guildId
+      ? interaction.user.id
+      : interaction.channelId;
+
+    const chatContextType = !interaction.guildId
+      ? ChatContextType.DM
+      : ChatContextType.Channel;
+
     if (
       !interaction.isChatInputCommand() ||
-      !modelStateMap.has(interaction.channelId)
+      !chatContextManager.has(chatContextType, chatContextKey)
     )
       return;
 
     if (interaction.commandName === "clear") {
-      modelStateMap.delete(interaction.channelId);
+      chatContextManager.delete(chatContextType, chatContextKey);
 
       try {
         if (interaction.replied || interaction.deferred) {

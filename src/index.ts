@@ -2,11 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { Client, REST, Events, GatewayIntentBits, Partials } from "discord.js";
-import { registerCommandInteraction, registerCommands } from "./src/command";
-import { ModelState } from "./src/model";
-import { registerMessageHandler } from "./src/message";
+import { registerCommandInteraction, registerCommands } from "./command";
+import { ChatContextManager } from "./chat-context";
+import { registerMessageHandler } from "./message";
 import { inspect } from "util";
-import i18n from "./src/i18n";
+import i18n from "./i18n";
 
 async function main() {
   if (!process.env.GEMINI_API_KEY) {
@@ -41,8 +41,7 @@ async function main() {
   });
   const rest = new REST().setToken(process.env.DISCORD_API_KEY);
 
-  /** Gives each channel its own chat context. Keys: Channel ID. */
-  const modelStateMap = new Map<string, ModelState>();
+  const chatContextManager = new ChatContextManager();
 
   registerCommands(rest);
 
@@ -50,9 +49,9 @@ async function main() {
     console.log(`Bot is ready! Logged in as ${client.user?.tag}.`);
   });
 
-  registerCommandInteraction(client, modelStateMap);
+  registerCommandInteraction(client, chatContextManager);
 
-  registerMessageHandler(client, modelStateMap);
+  registerMessageHandler(client, chatContextManager);
 
   process.on("uncaughtException", handleUncaughtException);
   process.on("unhandledRejection", handlePromiseRejection);
