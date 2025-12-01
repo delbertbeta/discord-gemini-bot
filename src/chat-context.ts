@@ -5,10 +5,10 @@ import {
   GoogleGenerativeAI,
   Part,
 } from "@google/generative-ai";
-import { ChannelType } from 'discord.js';
+import { ChannelType } from "discord.js";
 import i18n from "./i18n";
 
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-2.5-flash";
 
 export enum ChatContextType {
   "DM" = "DM",
