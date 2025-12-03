@@ -52,16 +52,33 @@ export function registerMessageHandler(
           )),
         ]);
 
-        let replyText = "";
-        let replyMessage: Message | undefined;
+        const MAX_LENGTH = 2000;
+        let pendingText = "";
+        let lastMessage: Message | null = null;
 
         for await (const chunk of result.stream) {
-          const chunkText = chunk.text();
-          replyText += chunkText;
-          if (!replyMessage) {
-            replyMessage = await message.reply(replyText);
+          pendingText += chunk.text();
+
+          while (pendingText.length >= MAX_LENGTH) {
+            const chunkToSend = pendingText.slice(0, MAX_LENGTH);
+            if (lastMessage) {
+              lastMessage = await lastMessage.reply(chunkToSend);
+            } else {
+              lastMessage = await message.reply(chunkToSend);
+            }
+            pendingText = pendingText.slice(MAX_LENGTH);
+          }
+
+          if (lastMessage && pendingText.length > 0) {
+            await lastMessage.edit(pendingText);
+          }
+        }
+
+        if (pendingText.length > 0) {
+          if (lastMessage) {
+            await lastMessage.edit(pendingText);
           } else {
-            await replyMessage.edit(replyText);
+            await message.reply(pendingText);
           }
         }
       } catch (error) {
