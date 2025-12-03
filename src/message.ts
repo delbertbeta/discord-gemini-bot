@@ -53,32 +53,22 @@ export function registerMessageHandler(
         ]);
 
         const MAX_LENGTH = 2000;
-        let pendingText = "";
         let lastMessage: Message | null = null;
+        let lastMessageSent = "";
 
         for await (const chunk of result.stream) {
-          pendingText += chunk.text();
+          lastMessageSent += chunk.text();
 
-          while (pendingText.length >= MAX_LENGTH) {
-            const chunkToSend = pendingText.slice(0, MAX_LENGTH);
-            if (lastMessage) {
-              lastMessage = await lastMessage.reply(chunkToSend);
+          if (lastMessageSent.length < MAX_LENGTH) {
+            if (!lastMessage) {
+              lastMessage = await message.reply(lastMessageSent);
             } else {
-              lastMessage = await message.reply(chunkToSend);
+              await lastMessage.edit(lastMessageSent);
             }
-            pendingText = pendingText.slice(MAX_LENGTH);
-          }
-
-          if (lastMessage && pendingText.length > 0) {
-            await lastMessage.edit(pendingText);
-          }
-        }
-
-        if (pendingText.length > 0) {
-          if (lastMessage) {
-            await lastMessage.edit(pendingText);
           } else {
-            await message.reply(pendingText);
+            await lastMessage.edit(lastMessageSent.slice(0, MAX_LENGTH));
+            lastMessageSent = lastMessageSent.slice(MAX_LENGTH);
+            lastMessage = await message.reply(lastMessageSent);
           }
         }
       } catch (error) {
